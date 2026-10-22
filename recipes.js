@@ -496,12 +496,54 @@ const levelClasses = {
 };
 
 const nutritionRows = [
-  { key: "calories", label: "Calories", unit: " kcal", icon: "fa-fire", box: "fire-icon-box", cls: "calories" },
-  { key: "protein", label: "Protein", unit: "g", icon: "fa-dumbbell", box: "protein-icon-box", cls: "protein" },
-  { key: "carbs", label: "Carbohydrates", unit: "g", icon: "fa-wheat-awn", box: "carbohydrates-icon-box", cls: "carbohydrates" },
-  { key: "fat", label: "Fat", unit: "g", icon: "fa-droplet", box: "fat-icon-box", cls: "fat" },
-  { key: "fiber", label: "Fiber", unit: "g", icon: "fa-seedling", box: "fiber-icon-box", cls: "fiber" },
-  { key: "sodium", label: "Sodium", unit: "mg", icon: "fa-cube", box: "cube-icon-box", cls: "sodium" },
+  {
+    key: "calories",
+    label: "Calories",
+    unit: " kcal",
+    icon: "fa-fire",
+    box: "fire-icon-box",
+    cls: "calories",
+  },
+  {
+    key: "protein",
+    label: "Protein",
+    unit: "g",
+    icon: "fa-dumbbell",
+    box: "protein-icon-box",
+    cls: "protein",
+  },
+  {
+    key: "carbs",
+    label: "Carbohydrates",
+    unit: "g",
+    icon: "fa-wheat-awn",
+    box: "carbohydrates-icon-box",
+    cls: "carbohydrates",
+  },
+  {
+    key: "fat",
+    label: "Fat",
+    unit: "g",
+    icon: "fa-droplet",
+    box: "fat-icon-box",
+    cls: "fat",
+  },
+  {
+    key: "fiber",
+    label: "Fiber",
+    unit: "g",
+    icon: "fa-seedling",
+    box: "fiber-icon-box",
+    cls: "fiber",
+  },
+  {
+    key: "sodium",
+    label: "Sodium",
+    unit: "mg",
+    icon: "fa-cube",
+    box: "cube-icon-box",
+    cls: "sodium",
+  },
 ];
 
 // ---------- 6. Fetch details by id ----------
@@ -521,6 +563,90 @@ async function fetchDetails(id) {
     }
   }
   return null; // everything failed
+}
+
+// ---------- 6b. Instructions ----------
+// The API has no cooking steps, so we build a general step-by-step guide
+// from the recipe type (found in the title) and its real cook time.
+function getInstructions(title, cookTime) {
+  const t = decodeEntities(title).toLowerCase();
+  const bake = `Bake for about ${formatTime(cookTime)}`;
+
+  if (t.includes("dough") || t.includes("crust")) {
+    const noKnead = t.includes("no-knead") || t.includes("no knead");
+    return [
+      "Measure out all your ingredients. If the recipe uses yeast, dissolve it in warm water first.",
+      "Mix the dry ingredients in a large bowl, then add the wet ingredients and stir until a shaggy dough forms.",
+      noKnead
+        ? "Stir just until combined - there's no kneading. Cover the bowl and leave it to rest for several hours."
+        : "Knead the dough for 8-10 minutes until smooth and elastic, then cover the bowl.",
+      "Let the dough rise in a warm place until doubled in size, about 1 hour.",
+      "Preheat the oven to 230°C (450°F). Shape the dough on a floured surface to fit your pan.",
+      `${bake} until the crust is golden and crisp. Add toppings if the recipe calls for them.`,
+    ];
+  }
+
+  if (t.includes("dip")) {
+    return [
+      "Preheat the oven to 190°C (375°F) and lightly grease a baking dish.",
+      "Mix the creamy base ingredients (such as cream cheese or sour cream) until smooth.",
+      "Spread the mixture in the dish, then layer the sauce, cheese and toppings over it.",
+      `${bake} until hot, bubbly and lightly golden on top.`,
+      "Let it cool for 5 minutes, then serve warm with bread, crackers or chips.",
+    ];
+  }
+
+  if (t.includes("burger")) {
+    return [
+      "Combine the meat with the seasonings and shape it into even patties.",
+      "Cook the patties in a hot pan or on the grill for 4-5 minutes per side until cooked through.",
+      "Top with sauce and cheese, then cover for a minute so the cheese melts.",
+      "Toast the buns lightly, assemble the burgers and serve hot.",
+    ];
+  }
+
+  if (t.includes("quesadilla") || t.includes("pizzadilla")) {
+    return [
+      "Prepare the fillings and shred the cheese.",
+      "Place a tortilla in a pan over medium heat. Add the cheese and fillings, then top with a second tortilla or fold it over.",
+      "Cook for 2-3 minutes per side until golden and the cheese has melted.",
+      "Cut into wedges and serve with a dipping sauce.",
+    ];
+  }
+
+  if (t.includes("fruit")) {
+    return [
+      "Preheat the oven to 180°C (350°F) and prepare the base (a cookie or pastry crust).",
+      "Press the base into your pan or onto a tray.",
+      `${bake} until lightly golden, then let it cool completely.`,
+      "Spread a layer of sweetened cream cheese or glaze over the cooled base.",
+      "Arrange the sliced fruit on top and chill for 30 minutes before serving.",
+    ];
+  }
+
+  if (
+    ["casserole", "pinwheel", "hand pie", "monkey bread", "skins", "tart"].some(
+      (word) => t.includes(word),
+    )
+  ) {
+    return [
+      "Preheat the oven to 190°C (375°F) and grease a baking dish or line a tray.",
+      "Prepare your ingredients: measure everything, and chop, slice or grate what needs it.",
+      "Assemble the dish by layering or filling it with the sauce, cheese and other ingredients.",
+      `${bake} until golden and cooked through.`,
+      "Let it rest for 5 minutes, then serve warm.",
+    ];
+  }
+
+  // Default: pizza-style recipes
+  return [
+    "Preheat the oven to 220°C (425°F) and lightly oil a baking tray.",
+    "Prepare your ingredients: measure everything, and chop, slice or grate what needs it.",
+    "Roll or stretch the dough (or prepare the base) to fit your tray.",
+    "Spread the sauce over the base, leaving a small border, then add the cheese and toppings.",
+    `${bake} until the crust is golden and the cheese is bubbling.`,
+    "Let it rest for 5 minutes, then slice and serve warm.",
+  ];
 }
 
 // ---------- 7. Build the full recipe object ----------
@@ -543,6 +669,7 @@ async function buildRecipe(base) {
     cookTime,
     servings,
     ingredients,
+    instructions: getInstructions(base.title, cookTime),
     level: getLevel(cookTime, details?.ingredients?.length ?? 0),
     ...placeholders,
   };
@@ -576,7 +703,7 @@ function renderRecipe(recipe) {
   levelBadge.classList.remove("level-easy", "level-intermediate", "level-hard");
   levelBadge.classList.add(levelClasses[recipe.level]);
   $(".food-details-badges .badge-2").textContent = decodeEntities(
-    recipe.publisher
+    recipe.publisher,
   );
 
   // Title + description
@@ -592,8 +719,8 @@ function renderRecipe(recipe) {
     const warning = document.createElement("p");
     warning.id = "cook-warning";
     warning.className =
-      "text-white p-2 px-3 rounded-3 mb-0 mt-3 fs-6";
-    warning.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i><h5>Extended Preparation Time</h5><p class="text-danger">This recipe requires more than 45 minutes to prepare. Plan accordingly!</p>.`;
+      "p-2 px-3 rounded-3 mb-0 mt-3 fs-6";
+    warning.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i><h5>Extended Preparation Time</h5><p class="text-danger">This recipe requires more than 45 minutes to prepare. Plan accordingly!</p>`;
     description.after(warning);
   }
 
@@ -604,26 +731,22 @@ function renderRecipe(recipe) {
         <div class="d-flex align-items-center">
           <span class="text-white py-2 px-3 mb-3 rounded-circle fw-bold">${i + 1}</span>
           <p class="ms-3 fs-5">${clean(item)}</p>
-        </div>`
+        </div>`,
     )
     .join("");
 
-  // Instructions: the API doesn't provide steps, so link to the original recipe
-  const sourceLink = recipe.sourceUrl
-    ? `<a href="${escapeHtml(recipe.sourceUrl)}" target="_blank" rel="noopener noreferrer"
-          class="btn btn-danger rounded-3 mt-2">
-          <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>View full instructions
-       </a>`
-    : "";
-
-  $(".Instructions-section").innerHTML = `
-    <div class="d-flex flex-column align-items-start">
-      <p class="fs-5">
-        The step-by-step directions for this recipe are on
-        <strong>${clean(recipe.publisher)}</strong>'s website.
-      </p>
-      ${sourceLink}
-    </div>`;
+  // Instructions
+  $(".Instructions-section").innerHTML =
+    recipe.instructions
+      .map(
+        (step, i) => `
+        <div class="d-flex align-items-center">
+          <span class="text-white py-2 px-3 mb-3 fw-bold rounded-3">${i + 1}</span>
+          <p class="ms-3 fs-5">${escapeHtml(step)}</p>
+        </div>`,
+      )
+      .join("")
+    
 
   // Nutrition
   $(".Nutrition-info").innerHTML = nutritionRows
@@ -637,7 +760,7 @@ function renderRecipe(recipe) {
             <p class="ms-2 mb-0">${row.label}</p>
           </div>
           <h5 class="mb-0 fw-bold">${recipe.nutrition[row.key]}${row.unit}</h5>
-        </div>`
+        </div>`,
     )
     .join("");
 
@@ -648,7 +771,7 @@ function renderRecipe(recipe) {
         <div class="Chef-tips-item d-flex align-items-center mb-3 p-4 rounded-3">
           <div><i class="fa-solid fa-circle-check fs-5"></i></div>
           <p class="ms-2 mb-1">${escapeHtml(tip)}</p>
-        </div>`
+        </div>`,
     )
     .join("");
 
